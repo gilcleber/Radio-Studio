@@ -1,0 +1,8 @@
+
+{
+  "name": "Rádio Studio - O Som Perfeito",
+  "description": "Plataforma gospel premium com curadoria Worship Internacional e DJ Inteligente.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
