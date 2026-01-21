@@ -1,19 +1,37 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MOCK_SONGS } from '../../constants';
+import { getSettings } from '../../services/settingsService';
 
-// URL de streaming real do .env
-const STREAM_URL = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonicradio.br/8124/stream';
+// Default fallback
+const DEFAULT_STREAM = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonicradio.br/8124/stream';
 
 export const Player: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLive, setIsLive] = useState(true);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const [currentSong, setCurrentSong] = useState(MOCK_SONGS[0]); // Currently Mocked "Now Playing"
+    const [currentSong, setCurrentSong] = useState(MOCK_SONGS[0]);
+    const [streamUrl, setStreamUrl] = useState(DEFAULT_STREAM);
+
+    // Fetch dynamic stream URL on mount
+    useEffect(() => {
+        const loadSettings = async () => {
+            const settings = await getSettings();
+            if (settings.stream_url && settings.stream_url !== streamUrl) {
+                console.log('📻 Stream URL atualizada via painel:', settings.stream_url);
+                setStreamUrl(settings.stream_url);
+                if (audioRef.current) {
+                    audioRef.current.src = settings.stream_url;
+                }
+            }
+        };
+        loadSettings();
+    }, []);
 
     useEffect(() => {
         if (!audioRef.current) {
-            audioRef.current = new Audio(STREAM_URL);
+            audioRef.current = new Audio(streamUrl);
+        } else if (audioRef.current.src !== streamUrl) {
+            audioRef.current.src = streamUrl;
         }
 
         // Media Session API Integration
@@ -33,7 +51,7 @@ export const Player: React.FC = () => {
             navigator.mediaSession.setActionHandler('play', togglePlay);
             navigator.mediaSession.setActionHandler('pause', togglePlay);
         }
-    }, [currentSong]);
+    }, [currentSong, streamUrl]);
 
     const togglePlay = () => {
         if (!audioRef.current) return;

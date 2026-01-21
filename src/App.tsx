@@ -8,11 +8,17 @@ import { Request } from './pages/Request';
 import { Charts } from './pages/Charts';
 import { Library } from './pages/Library';
 import { Team } from './pages/Team';
+import { AdminLayout } from './components/Admin/AdminLayout';
+import { SettingsManager } from './pages/Admin/SettingsManager';
+import { TeamManager } from './pages/Admin/TeamManager';
+
+const DashboardPlaceholder = () => <div className="p-8 text-center text-slate-400">Bem-vindo ao Painel Administrativo. Selecione uma opção no menu.</div>;
 
 const App: React.FC = () => {
     return (
         <Router>
             <Routes>
+                {/* Public Frontend Routes */}
                 <Route path="/" element={<MainLayout />}>
                     <Route index element={<Home />} />
                     <Route path="schedule" element={<Schedule />} />
@@ -20,8 +26,17 @@ const App: React.FC = () => {
                     <Route path="request" element={<Request />} />
                     <Route path="library" element={<Library />} />
                     <Route path="team" element={<Team />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<DashboardPlaceholder />} />
+                    <Route path="settings" element={<SettingsManager />} />
+                    <Route path="team" element={<TeamManager />} />
+                    <Route path="*" element={<DashboardPlaceholder />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
     );
