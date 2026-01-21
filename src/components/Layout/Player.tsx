@@ -2,13 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MOCK_SONGS } from '../../constants';
 
-const STREAM_URL = "https://stream.zeno.fm/g4n2h0qz7a5tv"; // Example Stream URL
+// URL de streaming real do .env
+const STREAM_URL = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonicradio.br/8124/stream';
 
 export const Player: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isLive, setIsLive] = useState(true); // "Live" vs "Behind"
+    const [isLive, setIsLive] = useState(true);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const song = MOCK_SONGS[0]; // Currently Mocked "Now Playing"
+    const [currentSong, setCurrentSong] = useState(MOCK_SONGS[0]); // Currently Mocked "Now Playing"
 
     useEffect(() => {
         if (!audioRef.current) {
@@ -18,21 +19,21 @@ export const Player: React.FC = () => {
         // Media Session API Integration
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: song.title,
-                artist: song.artist,
-                album: song.album,
+                title: currentSong.title,
+                artist: currentSong.artist,
+                album: currentSong.album,
                 artwork: [
-                    { src: song.coverUrl, sizes: '96x96', type: 'image/jpeg' },
-                    { src: song.coverUrl, sizes: '128x128', type: 'image/jpeg' },
-                    { src: song.coverUrl, sizes: '192x192', type: 'image/jpeg' },
-                    { src: song.coverUrl, sizes: '512x512', type: 'image/jpeg' },
+                    { src: currentSong.coverUrl, sizes: '96x96', type: 'image/jpeg' },
+                    { src: currentSong.coverUrl, sizes: '128x128', type: 'image/jpeg' },
+                    { src: currentSong.coverUrl, sizes: '192x192', type: 'image/jpeg' },
+                    { src: currentSong.coverUrl, sizes: '512x512', type: 'image/jpeg' },
                 ]
             });
 
             navigator.mediaSession.setActionHandler('play', togglePlay);
             navigator.mediaSession.setActionHandler('pause', togglePlay);
         }
-    }, [song]);
+    }, [currentSong]);
 
     const togglePlay = () => {
         if (!audioRef.current) return;
@@ -62,14 +63,14 @@ export const Player: React.FC = () => {
                 <div className="flex items-center gap-4 w-1/3 min-w-0">
                     <div className="relative group shrink-0">
                         <div className="absolute -inset-2 bg-primary/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity animate-pulse-slow"></div>
-                        <img className="size-14 rounded-xl object-cover border border-white/10 relative z-10" src={song.coverUrl} alt="Art" />
+                        <img className="size-14 rounded-xl object-cover border border-white/10 relative z-10" src={currentSong.coverUrl} alt="Art" />
                     </div>
                     <div className="min-w-0 overflow-hidden">
                         <div className="flex items-center gap-2 mb-0.5">
-                            <h3 className="font-display font-black text-white truncate text-base leading-none tracking-tight hover:text-primary transition-colors cursor-pointer">{song.title}</h3>
+                            <h3 className="font-display font-black text-white truncate text-base leading-none tracking-tight hover:text-primary transition-colors cursor-pointer">{currentSong.title}</h3>
                             {isLive && <span className="text-[9px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold uppercase animate-pulse shrink-0">Live</span>}
                         </div>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-white transition-colors cursor-pointer">{song.artist}</p>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-white transition-colors cursor-pointer">{currentSong.artist}</p>
                     </div>
                 </div>
 

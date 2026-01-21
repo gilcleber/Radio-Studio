@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { processSongRequest } from '../services/geminiService';
+import { saveSongRequest } from '../services/supabaseService';
 
 export const Request: React.FC = () => {
     const [step, setStep] = useState(1);
@@ -14,13 +15,21 @@ export const Request: React.FC = () => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate AI Processing Duration
-        setTimeout(async () => {
+        try {
+            // Save to Supabase
+            await saveSongRequest(song, name, message);
+
+            // Generate AI Response (Mock or Real) - Keeping Gemini Service for the "DJ Interaction" part
             const response = await processSongRequest(song);
             setAiResponse(response);
-            setIsSubmitting(false);
+
             setStep(3); // Success Screen
-        }, 2000);
+        } catch (error) {
+            console.error("Failed to submit request", error);
+            alert("Erro ao enviar pedido. Tente novamente.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (

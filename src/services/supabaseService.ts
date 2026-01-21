@@ -1,31 +1,66 @@
-
+import { supabase } from './supabaseClient';
 import { Request } from '../types';
 
-// This is a mockup. In a real scenario, you would initialize Supabase here.
-// const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+/**
+ * Salva pedido de música no Supabase
+ */
+export const saveSongRequest = async (
+  songTitle: string,
+  userName: string,
+  message: string,
+  dedicationTo?: string
+): Promise<Request> => {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        listener_name: userName,
+        song_request: songTitle,
+        dedication_to: dedicationTo || null,
+        message: message,
+        status: 'pending'
+      })
+      .select()
+      .single();
 
-export const saveSongRequest = async (songTitle: string, userName: string, message: string): Promise<Request> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const newRequest: Request = {
-    id: Math.random().toString(36).substr(2, 9),
-    songTitle,
-    userName,
-    message,
-    timestamp: new Date().toISOString()
-  };
+    if (error) throw error;
 
-  // Here you would do: await supabase.from('requests').insert([newRequest]);
-  console.log("Supabase Mock: Request saved", newRequest);
-  return newRequest;
+    return {
+      id: data.id,
+      songTitle: data.song_request,
+      userName: data.listener_name,
+      message: data.message,
+      timestamp: data.created_at
+    };
+  } catch (error) {
+    console.error('❌ Erro ao salvar pedido:', error);
+    throw error;
+  }
 };
 
+/**
+ * Busca leaderboard (Top 40) do Supabase
+ */
 export const getLeaderboard = async () => {
-  // Mock fetching leaderboard from Supabase
-  return [
-    { rank: "01", title: "Neon Nights", artist: "Synthwave Experience", rating: "98%" },
-    { rank: "02", title: "Midnight City", artist: "Electronic Dreams", rating: "92%" },
-    { rank: "03", title: "After Hours", artist: "Vibe Collective", rating: "89%" }
-  ];
+  try {
+    const { data, error } = await supabase
+      .rpc('get_top_songs', { p_limit: 40 });
+
+    if (error) throw error;
+
+    return data?.map((song: any, index: number) => ({
+      rank: String(index + 1).padStart(2, '0'),
+      title: song.title,
+      artist: song.artist,
+      rating: `${song.approval_percentage}%`
+    })) || [];
+  } catch (error) {
+    console.error('❌ Erro ao buscar leaderboard:', error);
+    // Fallback para dados mock em caso de erro
+    return [
+      { rank: "01", title: "Neon Nights", artist: "Synthwave Experience", rating: "98%" },
+      { rank: "02", title: "Midnight City", artist: "Electronic Dreams", rating: "92%" },
+      { rank: "03", title: "After Hours", artist: "Vibe Collective", rating: "89%" }
+    ];
+  }
 };

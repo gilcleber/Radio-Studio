@@ -11,7 +11,7 @@ export const MOCK_USER: User = {
 
 export const MOCK_SONGS: Song[] = [
   {
-    id: "1",
+    id: "550e8400-e29b-41d4-a716-446655440000",
     title: "Gratitude",
     artist: "Brandon Lake",
     album: "House of Miracles",
@@ -30,7 +30,7 @@ export const MOCK_SONGS: Song[] = [
     ]
   },
   {
-    id: "2",
+    id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
     title: "Firm Foundation",
     artist: "Cody Carnes",
     album: "The Night of Worship",
