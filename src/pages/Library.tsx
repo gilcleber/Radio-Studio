@@ -71,11 +71,11 @@ export const Library: React.FC = () => {
                             className="glass-panel p-4 cursor-pointer hover:border-neon-cyan transition-all group"
                             onClick={() => setSelectedSong(song)}
                         >
-                            <div className="relative mb-3 overflow-hidden rounded-lg">
+                            <div className="relative mb-3 overflow-hidden rounded-lg aspect-square">
                                 <img
                                     src={song.album_art_url || '/default-album.png'}
                                     alt={song.title}
-                                    className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300"
+                                    className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300"
                                 />
                                 {song.youtube_url && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

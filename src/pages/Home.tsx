@@ -116,15 +116,34 @@ export const Home: React.FC = () => {
                             Pedir Essa Música
                         </button>
 
-                        {/* Voting Buttons Component */}
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-sm">
-                            <VoteButton songId={song.id} />
-                        </div>
+                        <VoteButton songId={song.id} size="lg" />
 
                         <button className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2">
                             <span className="material-symbols-outlined">share</span>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            {/* Recentes / History Section (Placeholder for now until History service is real) */}
+            <div className="border-t border-white/5 pt-12">
+                <h3 className="text-2xl font-black italic text-white mb-6 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">history</span>
+                    Recentes
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Mock History Items based on design style (Replace with real data later) */}
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="bg-surface-dark border border-white/5 p-3 rounded-xl flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+                            <div className="size-10 bg-white/10 rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-slate-400">music_note</span>
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-sm font-bold text-white truncate">Música Anterior {i}</div>
+                                <div className="text-xs text-slate-500 truncate">Artista Gospel</div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
