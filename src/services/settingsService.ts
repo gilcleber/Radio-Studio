@@ -86,10 +86,11 @@ export const getSettings = async (): Promise<AppSettings> => {
  */
 export const updateSetting = async (key: keyof AppSettings, value: string) => {
     try {
+        // A tabela settings tem ID=1 fixo e colunas individuais
         const { error } = await supabase
             .from('settings')
-            .upsert({ key, value })
-            .select();
+            .update({ [key]: value })
+            .eq('id', 1);
 
         if (error) throw error;
         return true;
