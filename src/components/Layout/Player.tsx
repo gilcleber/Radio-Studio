@@ -141,6 +141,20 @@ export const Player: React.FC = () => {
             return;
         }
 
+        // CORS Proxy - Tenta usar proxy se der erro de CORS
+        const useCorsProxy = (url: string) => {
+            // Usando AllOrigins como proxy CORS
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        };
+
+        let finalStreamUrl = streamUrl;
+
+        // Se não for M3U8 e for uma URL suspeita de CORS, usar proxy
+        if (!isM3U8 && !streamUrl.includes('allorigins')) {
+            console.log('🔄 Tentando com proxy CORS...');
+            finalStreamUrl = useCorsProxy(streamUrl);
+        }
+
         if (isM3U8) {
             // HLS Stream (M3U8)
             if (Hls.isSupported()) {
@@ -148,7 +162,11 @@ export const Player: React.FC = () => {
                 const hls = new Hls({
                     enableWorker: true,
                     lowLatencyMode: true,
-                    backBufferLength: 90
+                    backBufferLength: 90,
+                    xhrSetup: (xhr: XMLHttpRequest) => {
+                        // Tentar adicionar headers para CORS
+                        xhr.withCredentials = false;
+                    }
                 });
 
                 hls.loadSource(streamUrl);
@@ -191,8 +209,9 @@ export const Player: React.FC = () => {
             }
         } else {
             // Regular audio stream
-            console.log('🎵 Stream de áudio regular:', streamUrl);
-            audio.src = streamUrl;
+            console.log('🎵 Stream de áudio:', finalStreamUrl);
+            audio.src = finalStreamUrl;
+            audio.crossOrigin = 'anonymous'; // Tentar CORS
         }
 
     }, [streamUrl]);
