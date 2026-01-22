@@ -4,7 +4,7 @@ import { getSettings } from '../../services/settingsService';
 import { voteSong } from '../../services/votingService';
 
 // Default fallback
-const DEFAULT_STREAM = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonic.radio.br/8124/;';
+const DEFAULT_STREAM = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonic.radio.br/8124/stream';
 
 export const Player: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
