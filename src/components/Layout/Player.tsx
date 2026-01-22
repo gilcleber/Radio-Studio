@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MOCK_SONGS } from '../../constants';
 import { getSettings } from '../../services/settingsService';
+import { voteSong } from '../../services/votingService';
 
 // Default fallback
-const DEFAULT_STREAM = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonicradio.br/8124/stream';
+const DEFAULT_STREAM = import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonic.radio.br/8124/;';
 
 export const Player: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -11,6 +12,8 @@ export const Player: React.FC = () => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [currentSong, setCurrentSong] = useState(MOCK_SONGS[0]);
     const [streamUrl, setStreamUrl] = useState(DEFAULT_STREAM);
+    const [volume, setVolume] = useState(1);
+    const [isMuted, setIsMuted] = useState(false);
 
     // Fetch dynamic stream URL on mount
     useEffect(() => {
@@ -30,9 +33,20 @@ export const Player: React.FC = () => {
     useEffect(() => {
         if (!audioRef.current) {
             audioRef.current = new Audio(streamUrl);
+            audioRef.current.preload = "none"; // Economizar dados se não der play
         } else if (audioRef.current.src !== streamUrl) {
             audioRef.current.src = streamUrl;
         }
+
+        if (audioRef.current) {
+            audioRef.current.volume = isMuted ? 0 : volume;
+        }
+
+        // Handle stream errors
+        audioRef.current.onerror = (e) => {
+            console.error("Stream Error:", e);
+            setIsPlaying(false);
+        };
 
         // Media Session API Integration
         if ('mediaSession' in navigator) {
@@ -51,28 +65,55 @@ export const Player: React.FC = () => {
             navigator.mediaSession.setActionHandler('play', togglePlay);
             navigator.mediaSession.setActionHandler('pause', togglePlay);
         }
-    }, [currentSong, streamUrl]);
+    }, [currentSong, streamUrl, volume, isMuted]);
 
     const togglePlay = () => {
         if (!audioRef.current) return;
 
         if (isPlaying) {
             audioRef.current.pause();
+            setIsPlaying(false);
         } else {
-            audioRef.current.play().catch(e => console.error("Playback failed", e));
-            // If we were "paused" for a long time, we might be behind live. 
-            // For a simple stream URL, re-playing usually jumps to live edge anyway.
-            setIsLive(true);
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        setIsPlaying(true);
+                        setIsLive(true);
+                    })
+                    .catch(error => {
+                        console.error("Playback failed", error);
+                        setIsPlaying(false);
+                    });
+            }
         }
-        setIsPlaying(!isPlaying);
+    };
+
+    const toggleMute = () => {
+        setIsMuted(!isMuted);
+    };
+
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVol = parseFloat(e.target.value);
+        setVolume(newVol);
+        setIsMuted(newVol === 0);
+        if (audioRef.current) audioRef.current.volume = newVol;
+    };
+
+    const handleLike = async () => {
+        // Implement simple like (fire and forget for visual feedback)
+        // More complex logic is in the main VoteButton, this is a quick access
+        if (currentSong.id) {
+            await voteSong(currentSong.id, 'like');
+            // Visual feedback could be added here
+        }
     };
 
     return (
         <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-background-dark/90 backdrop-blur-xl border-t border-white/5 p-4 z-50 transition-all duration-300">
             {/* Progress Bar (Visual Only for Live Radio) */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-white/5 cursor-pointer group">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-glow w-[45%] relative">
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 size-3 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-[0_0_10px_white] transition-opacity"></div>
+                <div className={`h-full bg-gradient-to-r from-primary to-primary-glow ${isPlaying ? 'w-full animate-pulse' : 'w-0'} transition-all duration-1000 relative`}>
                 </div>
             </div>
 
@@ -80,7 +121,7 @@ export const Player: React.FC = () => {
                 {/* Track Info */}
                 <div className="flex items-center gap-4 w-1/3 min-w-0">
                     <div className="relative group shrink-0">
-                        <div className="absolute -inset-2 bg-primary/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity animate-pulse-slow"></div>
+                        <div className={`absolute -inset-2 bg-primary/20 blur-lg rounded-full transition-opacity ${isPlaying ? 'opacity-100 animate-pulse-slow' : 'opacity-0'}`}></div>
                         <img className="size-14 rounded-xl object-cover border border-white/10 relative z-10" src={currentSong.coverUrl} alt="Art" />
                     </div>
                     <div className="min-w-0 overflow-hidden">
@@ -107,20 +148,32 @@ export const Player: React.FC = () => {
                     <button className="text-slate-400 hover:text-white transition-colors" title="Next"><span className="material-symbols-outlined text-2xl">skip_next</span></button>
                 </div>
 
-                {/* Actions */}
+                {/* Actions & Volume */}
                 <div className="w-1/3 flex justify-end items-center gap-4">
-                    {/* Adoration Thermometer (Mock) */}
-                    <div className="hidden lg:flex flex-col items-end gap-1 mr-4">
-                        <span className="text-[9px] font-black uppercase text-primary tracking-widest">Vibe Check</span>
-                        <div className="flex gap-0.5 h-3 items-end">
-                            {[...Array(5)].map((_, i) => (
-                                <div key={i} className={`w-1 rounded-sm bg-primary ${i < 3 ? 'h-full opacity-100' : 'h-1/2 opacity-30'} animate-pulse`} style={{ animationDelay: `${i * 0.1}s` }}></div>
-                            ))}
-                        </div>
-                    </div>
+                    <button
+                        onClick={handleLike}
+                        className="text-slate-400 hover:text-accent-magenta transition-colors hover:scale-110 active:scale-90"
+                        title="Curtir"
+                    >
+                        <span className="material-symbols-outlined text-2xl">favorite</span>
+                    </button>
 
-                    <button className="text-slate-400 hover:text-accent-magenta transition-colors hover:scale-110 active:scale-90"><span className="material-symbols-outlined text-2xl">favorite</span></button>
-                    <button className="hidden sm:block text-slate-400 hover:text-white transition-colors"><span className="material-symbols-outlined text-2xl">volume_up</span></button>
+                    <div className="hidden sm:flex items-center gap-2 group">
+                        <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors">
+                            <span className="material-symbols-outlined text-2xl">
+                                {isMuted || volume === 0 ? 'volume_off' : volume < 0.5 ? 'volume_down' : 'volume_up'}
+                            </span>
+                        </button>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolumeChange}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

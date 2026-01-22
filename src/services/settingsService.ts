@@ -5,7 +5,7 @@ export interface AppSettings {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-    stream_url: import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonicradio.br/8124/stream'
+    stream_url: import.meta.env.VITE_RADIO_STREAM_URL || 'https://s1.sonic.radio.br/8124/;'
 };
 
 /**
