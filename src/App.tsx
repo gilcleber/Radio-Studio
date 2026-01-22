@@ -15,6 +15,7 @@ import { SongManager } from './pages/Admin/SongManager';
 import { ScheduleManager } from './pages/Admin/ScheduleManager';
 import { RequestManager } from './pages/Admin/RequestManager';
 import { AdvancedSettingsManager } from './pages/Admin/AdvancedSettingsManager';
+import { BannerManager } from './pages/Admin/BannerManager';
 
 const DashboardPlaceholder = () => <div className="p-8 text-center text-slate-400">Bem-vindo ao Painel Administrativo. Selecione uma opção no menu.</div>;
 
@@ -41,6 +42,7 @@ const App: React.FC = () => {
                     <Route path="songs" element={<SongManager />} />
                     <Route path="schedule" element={<ScheduleManager />} />
                     <Route path="requests" element={<RequestManager />} />
+                    <Route path="banners" element={<BannerManager />} />
                     <Route path="*" element={<DashboardPlaceholder />} />
                 </Route>
 

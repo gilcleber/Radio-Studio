@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { BannerDisplay } from '../BannerDisplay';
 
 const navItems = [
     { icon: 'home', label: 'Início', path: '/' },
@@ -13,7 +14,7 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
     return (
-        <aside className="w-72 border-r border-white/5 bg-background-dark/80 backdrop-blur-xl flex flex-col p-8 shrink-0 z-40 hidden lg:flex h-full">
+        <aside className="w-72 border-r border-white/5 bg-background-dark/80 backdrop-blur-xl flex flex-col p-8 shrink-0 z-40 hidden lg:flex h-full overflow-y-auto">
             {/* Logo Area */}
             <NavLink to="/" className="flex items-center gap-4 mb-12 group cursor-pointer">
                 <div className="bg-gradient-to-br from-primary to-accent-blue size-12 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-500">
@@ -45,6 +46,11 @@ export const Sidebar: React.FC = () => {
                     </NavLink>
                 ))}
             </nav>
+
+            {/* Banner Publicitário */}
+            <div className="my-6">
+                <BannerDisplay position="sidebar" />
+            </div>
 
             {/* User Mini Profile & Admin Link */}
             <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
