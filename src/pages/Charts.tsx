@@ -51,18 +51,15 @@ export const Charts: React.FC = () => {
             };
         });
 
-        // 4. Sort: Manual Rank (ASC) -> Then Approval (DESC)
-        const sorted = merged.sort((a: TopSong, b: TopSong) => {
-            // Both have rank: compare ranks
+        // 4. FILTRAR: Apenas músicas com manual_rank definido (Top 40 oficial)
+        const rankedOnly = merged.filter((s: TopSong) => s.manual_rank != null);
+
+        // 5. Sort: Manual Rank (ASC) -> Then Approval (DESC)
+        const sorted = rankedOnly.sort((a: TopSong, b: TopSong) => {
+            // Ambos têm rank: comparar ranks
             if (a.manual_rank && b.manual_rank) return a.manual_rank - b.manual_rank;
 
-            // Only A has rank: A comes first
-            if (a.manual_rank) return -1;
-
-            // Only B has rank: B comes first
-            if (b.manual_rank) return 1;
-
-            // Neither: Compare Approval/Votes
+            // Comparar por aprovação caso contrário
             return b.approval_percentage - a.approval_percentage;
         });
 
@@ -132,7 +129,7 @@ export const Charts: React.FC = () => {
                         className="group flex items-center gap-6 p-4 rounded-3xl bg-surface-dark/50 border border-white/5 hover:border-primary/30 hover:bg-white/5 transition-all cursor-pointer"
                     >
                         <span className={`text-3xl font-black italic w-12 text-center ${i === 0 ? 'text-primary' : 'text-slate-700 group-hover:text-primary transition-colors'}`}>
-                            {(i + 1).toString().padStart(2, '0')}
+                            {song.manual_rank?.toString().padStart(2, '0') || (i + 1).toString().padStart(2, '0')}
                         </span>
 
                         <img src={song.album_art_url || '/default-album.png'} className="size-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="" />
