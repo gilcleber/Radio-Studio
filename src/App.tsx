@@ -18,6 +18,7 @@ import { RequestManager } from './pages/Admin/RequestManager';
 import { AdvancedSettingsManager } from './pages/Admin/AdvancedSettingsManager';
 import { BannerManager } from './pages/Admin/BannerManager';
 import { ThemeCustomizer } from './pages/Admin/ThemeCustomizer';
+import { StreamManager } from './pages/Admin/StreamManager';
 
 const DashboardPlaceholder = () => <div className="p-8 text-center text-slate-400">Bem-vindo ao Painel Administrativo. Selecione uma opção no menu.</div>;
 
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                         <Route path="requests" element={<RequestManager />} />
                         <Route path="banners" element={<BannerManager />} />
                         <Route path="theme" element={<ThemeCustomizer />} />
+                        <Route path="streams" element={<StreamManager />} />
                         <Route path="*" element={<DashboardPlaceholder />} />
                     </Route>
 

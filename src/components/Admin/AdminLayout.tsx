@@ -103,6 +103,7 @@ export const AdminLayout: React.FC = () => {
                     <SidebarItem to="/admin/requests" icon="inbox" label="Pedidos" badge={pendingCount} />
                     <SidebarItem to="/admin/banners" icon="image" label="Banners" />
                     <div className="my-4 h-px bg-white/5 mx-4" />
+                    <SidebarItem to="/admin/streams" icon="radio" label="Streams" />
                     <SidebarItem to="/admin/theme" icon="palette" label="Tema" />
                 </nav>
 
