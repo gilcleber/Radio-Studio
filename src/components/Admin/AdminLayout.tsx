@@ -50,6 +50,7 @@ export const AdminLayout: React.FC = () => {
                     <SidebarItem to="/admin/songs" icon="library_music" label="Biblioteca" />
                     <SidebarItem to="/admin/team" icon="groups" label="Equipe" />
                     <SidebarItem to="/admin/schedule" icon="calendar_month" label="Programação" />
+                    <SidebarItem to="/admin/requests" icon="inbox" label="Pedidos" />
                 </nav>
 
                 <div className="p-4 border-t border-white/5">

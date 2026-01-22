@@ -9,6 +9,7 @@ interface Song {
     album_art_url?: string;
     youtube_url?: string;
     genre?: string;
+    manual_rank?: number | null;
 }
 
 export const SongManager: React.FC = () => {
@@ -39,7 +40,8 @@ export const SongManager: React.FC = () => {
             album: isEditing.album,
             album_art_url: isEditing.album_art_url,
             youtube_url: isEditing.youtube_url,
-            genre: isEditing.genre
+            genre: isEditing.genre,
+            manual_rank: isEditing.manual_rank
         };
 
         if (isEditing.id) {
@@ -117,6 +119,28 @@ export const SongManager: React.FC = () => {
                                     value={isEditing.album_art_url || ''}
                                     onChange={e => setIsEditing({ ...isEditing, album_art_url: e.target.value })}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Posição Top 40 (Opcional)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-background-dark border border-white/10 p-3 rounded-xl text-white outline-none focus:border-primary"
+                                        placeholder="Ex: 1"
+                                        value={isEditing.manual_rank || ''}
+                                        onChange={e => setIsEditing({ ...isEditing, manual_rank: parseInt(e.target.value) || null })}
+                                    />
+                                    <p className="text-[10px] text-slate-500 mt-1">Se definido, força a posição no ranking.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Gênero</label>
+                                    <input
+                                        className="w-full bg-background-dark border border-white/10 p-3 rounded-xl text-white outline-none focus:border-primary"
+                                        placeholder="Ex: Worship"
+                                        value={isEditing.genre || ''}
+                                        onChange={e => setIsEditing({ ...isEditing, genre: e.target.value })}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">YouTube URL (Embed)</label>

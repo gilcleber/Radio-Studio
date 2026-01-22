@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { VoteButton } from '../components/VoteButton';
 import { getNowPlaying, NowPlayingSong } from '../services/nowPlayingService';
 import { supabase } from '../services/supabaseClient';
@@ -51,9 +52,9 @@ export const Home: React.FC = () => {
                     Aguarde o início da próxima programação.
                 </p>
                 <div className="mt-8 flex gap-4">
-                    <button className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold uppercase hover:bg-white/10 transition-all flex items-center gap-2">
+                    <NavLink to="/schedule" className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold uppercase hover:bg-white/10 transition-all flex items-center gap-2">
                         <span className="material-symbols-outlined">calendar_month</span> Ver Programação
-                    </button>
+                    </NavLink>
                 </div>
             </div>
         );

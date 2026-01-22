@@ -61,7 +61,7 @@ export const Sidebar: React.FC = () => {
                     </div>
                     <div className="min-w-0">
                         <p className="text-sm font-black truncate text-white group-hover:text-primary transition-colors">Gil Cleber</p>
-                        <p className="text-[10px] text-accent-gold font-bold uppercase tracking-widest">Premium Member</p>
+                        <p className="text-[10px] text-accent-gold font-bold uppercase tracking-widest">Membro Premium</p>
                     </div>
                 </div>
             </div>

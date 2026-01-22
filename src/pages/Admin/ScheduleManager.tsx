@@ -15,7 +15,7 @@ const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 
 export const ScheduleManager: React.FC = () => {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
-    const [isEditing, setIsEditing] = useState<ScheduleItem | null>(null);
+    const [isEditing, setIsEditing] = useState<any | null>(null); // any to allow multi-select days in local state
 
     useEffect(() => {
         fetchSchedule();
@@ -30,19 +30,36 @@ export const ScheduleManager: React.FC = () => {
         e.preventDefault();
         if (!isEditing) return;
 
-        const payload = {
-            program_name: isEditing.program_name,
-            host_name: isEditing.host_name,
-            day_of_week: isEditing.day_of_week,
-            start_time: isEditing.start_time,
-            end_time: isEditing.end_time,
-            category: isEditing.category
-        };
+        const { program_name, host_name, start_time, end_time, category, selectedDays } = isEditing;
 
+        // Validation
+        if (!program_name || !host_name || !start_time || !end_time) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        // If 'id' exists, it's a single update
         if (isEditing.id) {
-            await supabase.from('schedule').update(payload).eq('id', isEditing.id);
+            await supabase.from('schedule').update({
+                program_name, host_name, start_time, end_time, category, day_of_week: isEditing.day_of_week
+            }).eq('id', isEditing.id);
         } else {
-            await supabase.from('schedule').insert([payload]);
+            // New Entry: Check for multiple days
+            if (selectedDays && selectedDays.length > 0) {
+                const rows = selectedDays.map((dayIndex: number) => ({
+                    program_name,
+                    host_name,
+                    start_time,
+                    end_time,
+                    category,
+                    day_of_week: dayIndex
+                }));
+                await supabase.from('schedule').insert(rows);
+            } else {
+                // Fallback (shouldn't happen with UI logic, but safe)
+                alert('Selecione pelo menos um dia.');
+                return;
+            }
         }
 
         setIsEditing(null);
@@ -56,6 +73,16 @@ export const ScheduleManager: React.FC = () => {
         }
     };
 
+    // Helper to toggle days
+    const toggleDay = (dayIndex: number) => {
+        const current = isEditing.selectedDays || [];
+        if (current.includes(dayIndex)) {
+            setIsEditing({ ...isEditing, selectedDays: current.filter((d: number) => d !== dayIndex) });
+        } else {
+            setIsEditing({ ...isEditing, selectedDays: [...current, dayIndex] });
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-8">
@@ -64,7 +91,7 @@ export const ScheduleManager: React.FC = () => {
                     <p className="text-slate-400">Edite os horários e programas da rádio.</p>
                 </div>
                 <button
-                    onClick={() => setIsEditing({ program_name: '', host_name: '', day_of_week: 1, start_time: '08:00', end_time: '12:00', category: 'Live' })}
+                    onClick={() => setIsEditing({ program_name: '', host_name: '', selectedDays: [1], start_time: '08:00', end_time: '12:00', category: 'Live' })}
                     className="px-4 py-2 bg-primary text-background-dark font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2"
                 >
                     <span className="material-symbols-outlined">add</span> Novo Programa
@@ -95,9 +122,12 @@ export const ScheduleManager: React.FC = () => {
                                     required
                                 />
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-1">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dia</label>
+
+                            {/* Day Selection (Conditional Interface) */}
+                            <div className="col-span-1">
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Dias de Exibição</label>
+                                {isEditing.id ? (
+                                    // Edit Mode: Single Day select (moving between days is cleaner than multi-edit existing)
                                     <select
                                         className="w-full bg-background-dark border border-white/10 p-3 rounded-xl text-white outline-none focus:border-primary"
                                         value={isEditing.day_of_week}
@@ -105,7 +135,27 @@ export const ScheduleManager: React.FC = () => {
                                     >
                                         {DAYS.map((day, i) => <option key={i} value={i}>{day}</option>)}
                                     </select>
-                                </div>
+                                ) : (
+                                    // Create Mode: Checkboxes
+                                    <div className="flex flex-wrap gap-2">
+                                        {DAYS.map((day, i) => (
+                                            <button
+                                                type="button"
+                                                key={i}
+                                                onClick={() => toggleDay(i)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${isEditing.selectedDays?.includes(i)
+                                                        ? 'bg-primary text-background-dark ring-2 ring-primary ring-offset-2 ring-offset-background-dark'
+                                                        : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                {day.substring(0, 3)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Início</label>
                                     <input
@@ -158,8 +208,8 @@ export const ScheduleManager: React.FC = () => {
                                             <div className="text-sm text-primary font-bold">{item.host_name}</div>
                                         </div>
                                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setIsEditing(item)} className="size-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-primary hover:text-black transition-colors"><span className="material-symbols-outlined text-sm">edit</span></button>
-                                            <button onClick={() => handleDelete(item.id!)} className="size-8 rounded-full bg-white/10 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
+                                            <button onClick={() => setIsEditing({ ...item })} className="size-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-primary hover:text-black transition-colors"><span className="material-symbols-outlined text-sm">edit</span></button>
+                                            <button onClick={() => handleDelete(item.id!)} className="size-8 rounded-full bg-white/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
                                         </div>
                                     </div>
                                 ))}

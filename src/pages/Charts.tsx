@@ -4,13 +4,15 @@ import { voteSong } from '../services/votingService';
 
 interface TopSong {
     song_id: string; // RPC returns song_id
+    id?: string; // Fallback
     title: string;
     artist: string;
     album_art_url: string;
     likes: number;
     dislikes: number;
     approval_percentage: number;
-    youtube_url?: string; // RPC might not return this unless I update it, but let's check
+    youtube_url?: string;
+    manual_rank?: number | null;
 }
 
 // Helper to extract YouTube ID
@@ -21,17 +23,50 @@ const extractYouTubeId = (url: string): string => {
 };
 
 export const Charts: React.FC = () => {
-    const [songs, setSongs] = useState<any[]>([]); // Using any for simplicity with RPC result matching
+    const [songs, setSongs] = useState<TopSong[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedSong, setSelectedSong] = useState<any | null>(null);
+    const [selectedSong, setSelectedSong] = useState<TopSong | null>(null);
 
     useEffect(() => {
         fetchTopSongs();
     }, []);
 
     const fetchTopSongs = async () => {
-        const data = await getTopSongs();
-        setSongs(data);
+        // 1. Fetch Stats from RPC
+        const stats = await getTopSongs();
+
+        // 2. Fetch Manually Ranked Songs (to get manual_rank and youtube_url if missing)
+        const { data: allSongs } = await supabase.from('songs').select('id, manual_rank, youtube_url');
+
+        // 3. Merge Flow
+        const songMap = new Map(allSongs?.map(s => [s.id, s]) || []);
+
+        const merged = stats.map((s: any) => {
+            const extra = songMap.get(s.song_id || s.id);
+            return {
+                ...s,
+                id: s.song_id || s.id,
+                youtube_url: s.youtube_url || extra?.youtube_url, // Prioritize RPC if updated, else table
+                manual_rank: extra?.manual_rank
+            };
+        });
+
+        // 4. Sort: Manual Rank (ASC) -> Then Approval (DESC)
+        const sorted = merged.sort((a: TopSong, b: TopSong) => {
+            // Both have rank: compare ranks
+            if (a.manual_rank && b.manual_rank) return a.manual_rank - b.manual_rank;
+
+            // Only A has rank: A comes first
+            if (a.manual_rank) return -1;
+
+            // Only B has rank: B comes first
+            if (b.manual_rank) return 1;
+
+            // Neither: Compare Approval/Votes
+            return b.approval_percentage - a.approval_percentage;
+        });
+
+        setSongs(sorted);
         setIsLoading(false);
     };
 

@@ -148,7 +148,17 @@ export const Library: React.FC = () => {
                                     Ver no YouTube
                                 </a>
                             )}
-                            <button className="glass-panel px-6 py-3 text-neon-cyan hover:text-white transition-colors flex items-center gap-2">
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await import('../services/votingService').then(m => m.voteSong(selectedSong.id, 'like'));
+                                        alert('Música favoritada!');
+                                    } catch (e) {
+                                        alert('Erro ao favoritar.');
+                                    }
+                                }}
+                                className="glass-panel px-6 py-3 text-neon-cyan hover:text-white transition-colors flex items-center gap-2"
+                            >
                                 <span className="material-symbols-outlined">favorite</span>
                                 Favoritar
                             </button>
