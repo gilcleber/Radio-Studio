@@ -1,16 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { subscribeToNewRequests, getPendingRequestsCount, playNotificationSound } from '../../services/notificationService';
 
 export const AdminLayout: React.FC = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [pendingCount, setPendingCount] = useState(0);
 
-    // Simple Sidebar Item Component
-    const SidebarItem = ({ to, icon, label }: { to: string; icon: string; label: string }) => (
+    useEffect(() => {
+        // Buscar contagem inicial
+        loadPendingCount();
+
+        // Subscrever para novos pedidos
+        const channel = subscribeToNewRequests((request) => {
+            // Reproduzir som de notificação
+            playNotificationSound();
+
+            // Atualizar contagem
+            loadPendingCount();
+
+            // Mostrar notificação do navegador (se permitido)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Novo Pedido Musical! 🎵', {
+                    body: `${request.user_name}: ${request.song_title}`,
+                    icon: '/logo.png'
+                });
+            }
+        });
+
+        return () => {
+            channel.unsubscribe();
+        };
+    }, []);
+
+    const loadPendingCount = async () => {
+        const count = await getPendingRequestsCount();
+        setPendingCount(count);
+    };
+
+    // Solicitar permissão para notificações
+    const requestNotificationPermission = () => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    };
+
+    useEffect(() => {
+        requestNotificationPermission();
+    }, []);
+
+    // Sidebar Item Component with Badge Support
+    const SidebarItem = ({ to, icon, label, badge }: { to: string; icon: string; label: string; badge?: number }) => (
         <NavLink
             to={to}
             className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${isActive
                     ? 'bg-primary text-background-dark font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`
@@ -18,6 +62,11 @@ export const AdminLayout: React.FC = () => {
         >
             <span className="material-symbols-outlined">{icon}</span>
             {isSidebarOpen && <span>{label}</span>}
+            {badge && badge > 0 && (
+                <span className="ml-auto size-6 rounded-full bg-red-500 text-white text-xs font-black flex items-center justify-center animate-pulse">
+                    {badge > 99 ? '99+' : badge}
+                </span>
+            )}
         </NavLink>
     );
 
@@ -51,7 +100,7 @@ export const AdminLayout: React.FC = () => {
                     <SidebarItem to="/admin/songs" icon="library_music" label="Biblioteca" />
                     <SidebarItem to="/admin/team" icon="groups" label="Equipe" />
                     <SidebarItem to="/admin/schedule" icon="calendar_month" label="Programação" />
-                    <SidebarItem to="/admin/requests" icon="inbox" label="Pedidos" />
+                    <SidebarItem to="/admin/requests" icon="inbox" label="Pedidos" badge={pendingCount} />
                 </nav>
 
                 <div className="p-4 border-t border-white/5">
@@ -71,6 +120,12 @@ export const AdminLayout: React.FC = () => {
                 <header className="h-16 border-b border-white/5 bg-surface-dark/50 backdrop-blur flex items-center justify-between px-6">
                     <h2 className="text-lg font-bold text-slate-300">Painel de Controle</h2>
                     <div className="flex items-center gap-4">
+                        {pendingCount > 0 && (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm font-bold">
+                                <span className="material-symbols-outlined text-base animate-pulse">notifications</span>
+                                {pendingCount} {pendingCount === 1 ? 'pedido' : 'pedidos'}
+                            </div>
+                        )}
                         <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">A</div>
                         <span className="text-sm font-bold text-white">Admin</span>
                     </div>
