@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { voteSong } from '../services/votingService';
 
 interface Song {
     id: string;
@@ -151,7 +152,7 @@ export const Library: React.FC = () => {
                             <button
                                 onClick={async () => {
                                     try {
-                                        await import('../services/votingService').then(m => m.voteSong(selectedSong.id, 'like'));
+                                        await voteSong(selectedSong.id, 'like');
                                         alert('Música favoritada!');
                                     } catch (e) {
                                         alert('Erro ao favoritar.');
