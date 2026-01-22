@@ -47,6 +47,7 @@ export const AdminLayout: React.FC = () => {
                     <div className="my-4 h-px bg-white/5 mx-4" />
                     <p className={`px-4 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ${!isSidebarOpen && 'hidden'}`}>Gerenciador</p>
                     <SidebarItem to="/admin/settings" icon="settings" label="Configurações" />
+                    <SidebarItem to="/admin/settings-advanced" icon="tune" label="Config. Avançadas" />
                     <SidebarItem to="/admin/songs" icon="library_music" label="Biblioteca" />
                     <SidebarItem to="/admin/team" icon="groups" label="Equipe" />
                     <SidebarItem to="/admin/schedule" icon="calendar_month" label="Programação" />

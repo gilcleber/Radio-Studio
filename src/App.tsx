@@ -13,8 +13,8 @@ import { SettingsManager } from './pages/Admin/SettingsManager';
 import { TeamManager } from './pages/Admin/TeamManager';
 import { SongManager } from './pages/Admin/SongManager';
 import { ScheduleManager } from './pages/Admin/ScheduleManager';
-
 import { RequestManager } from './pages/Admin/RequestManager';
+import { AdvancedSettingsManager } from './pages/Admin/AdvancedSettingsManager';
 
 const DashboardPlaceholder = () => <div className="p-8 text-center text-slate-400">Bem-vindo ao Painel Administrativo. Selecione uma opção no menu.</div>;
 
@@ -36,6 +36,7 @@ const App: React.FC = () => {
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<DashboardPlaceholder />} />
                     <Route path="settings" element={<SettingsManager />} />
+                    <Route path="settings-advanced" element={<AdvancedSettingsManager />} />
                     <Route path="team" element={<TeamManager />} />
                     <Route path="songs" element={<SongManager />} />
                     <Route path="schedule" element={<ScheduleManager />} />
